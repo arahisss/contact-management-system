@@ -4,25 +4,35 @@ import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class ContactManagementSystem {
-    public static String[] names = new String[100];
-    public static String[] phoneNumbers  = new String[100];
+    private static String[] names = new String[100];
+    private static String[] phoneNumbers  = new String[100];
 
     public static void getAll(int contactCount) {
-        System.out.println("Список контактов:");
-        for (int i = 0; i < contactCount; i++) {
-            System.out.println(names[i] + " " + phoneNumbers[i]);
+        if (contactCount == 0) {
+            System.out.println("Список контактов пуст.");
+        } else {
+            System.out.println("Список контактов:");
+            for (int i = 0; i < contactCount; i++) {
+                System.out.println(names[i] + " " + phoneNumbers[i]);
+            }
         }
     }
 
     public static int addContact(Scanner scanner, int contactCount) {
-        if (contactCount >= 5) {
+        if (contactCount >= 100) {
+            System.out.println("Список контактов переполнен");
             return contactCount;
         }
         System.out.println("Введите имя: ");
-        String name = scanner.nextLine();
+        String name = scanner.nextLine().trim();
 
         System.out.println("Введите номер телефона: ");
-        String phoneNumber = scanner.nextLine();
+        String phoneNumber = scanner.nextLine().trim();
+
+        if (name.isEmpty() || phoneNumber.isEmpty()) {
+            System.out.println("Ошибка! Имя и номер телефона не должны быть пустыми");
+            return contactCount;
+        }
 
         names[contactCount] = name;
         phoneNumbers[contactCount] = phoneNumber;
@@ -30,26 +40,51 @@ public class ContactManagementSystem {
         return ++contactCount;
     }
 
-    public static void removeContact() {
+    public static boolean removeContact(Scanner scanner, int contactCount) {
+        System.out.println("Введите имя для удаления контакта:");
+        String name = scanner.nextLine().trim();
+        int index = getIndexByName(name, contactCount);
+
+        if (index == -1) {
+            System.out.println("Контакт с именем " + name + " не найден");
+            return false;
+        }
+
+        for (int i = index; i < contactCount - 1; i++) {
+            names[i] = names[i + 1];
+            phoneNumbers[i] = phoneNumbers[i + 1];
+        }
+        names[contactCount - 1] = null;
+        phoneNumbers[contactCount - 1] = null;
+
+        System.out.printf("Контакт \"%s\" удален.\n", name);
+        return true;
     }
 
-    public static void findContactByName(Scanner scanner) {
+    public static void findContactByName(Scanner scanner, int contactCount) {
         System.out.println("Введите имя контакта для поиска:");
-        String name = scanner.nextLine();
-        int contactIndex = -1;
+        String name = scanner.nextLine().trim();
 
-        for (int i = 0; i < names.length; i++) {
-            if (names[i] != null && names[i].equals(name)) {
-                contactIndex = i;
-                System.out.println("asd");
-                break;
-            }
+        if (name.isEmpty()) {
+            System.out.println("Ошибка! Имя контакнта не должно быть пустым.");
+            return;
         }
+
+        int contactIndex = getIndexByName(name, contactCount);
         if (contactIndex == -1) {
             System.out.println("Контакт не найден");
         } else {
             System.out.println(names[contactIndex] + " " + phoneNumbers[contactIndex]);
         }
+    }
+
+    public static int getIndexByName(String name, int contactCount) {
+        for (int i = 0; i < contactCount; i++) {
+            if (names[i].equalsIgnoreCase(name)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     public static void getMenu() {
@@ -69,7 +104,7 @@ public class ContactManagementSystem {
             try {
                 return scanner.nextInt();
             } catch (InputMismatchException e) {
-                System.out.println("Введите число от 1 до 5");
+                System.out.println("Ошибка! Введите целое число.");
                 scanner.nextLine();
             }
         }
@@ -81,7 +116,7 @@ public class ContactManagementSystem {
         boolean isRunning = true;
         int contactCount = 0;
 
-        while (contactCount < 100 && isRunning) {
+        while (isRunning) {
             getMenu();
 
             int choice = inputInt(scanner);
@@ -89,7 +124,7 @@ public class ContactManagementSystem {
 
             if (choice < 1 || choice > 5) {
                 System.out.println("Некорректный выбор.");
-                getMenu();
+                continue;
             }
 
             switch (choice) {
@@ -100,16 +135,16 @@ public class ContactManagementSystem {
                     getAll(contactCount);
                     break;
                 case 3:
-                    findContactByName(scanner);
+                    findContactByName(scanner, contactCount);
                     break;
                 case 4:
-                    continue;
+                    if (removeContact(scanner, contactCount)) contactCount--;
+                    break;
                 case 5:
                     isRunning =  false;
                     break;
                 default:
             }
         }
-
     }
 }
