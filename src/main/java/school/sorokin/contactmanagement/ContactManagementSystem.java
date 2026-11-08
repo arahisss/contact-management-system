@@ -4,19 +4,8 @@ import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class ContactManagementSystem {
-    private static String[] names = new String[100];
-    private static String[] phoneNumbers  = new String[100];
-
-    public static void getAll(int contactCount) {
-        if (contactCount == 0) {
-            System.out.println("Список контактов пуст.");
-        } else {
-            System.out.println("Список контактов:");
-            for (int i = 0; i < contactCount; i++) {
-                System.out.println(names[i] + " " + phoneNumbers[i]);
-            }
-        }
-    }
+    private static final String[] names = new String[100];
+    private static final String[] phoneNumbers  = new String[100];
 
     public static int addContact(Scanner scanner, int contactCount) {
         if (contactCount >= 100) {
@@ -26,11 +15,21 @@ public class ContactManagementSystem {
         System.out.println("Введите имя: ");
         String name = scanner.nextLine().trim();
 
+        if (name.isEmpty()) {
+            System.out.println("Ошибка! Имя контакта не должно быть пустыми");
+            return contactCount;
+        }
+
+        if (getIndexByName(name, contactCount) != -1) {
+            System.out.println("Ошибка! Контакт с именем " + name + " уже добавлен.");
+            return contactCount;
+        }
+
         System.out.println("Введите номер телефона: ");
         String phoneNumber = scanner.nextLine().trim();
 
-        if (name.isEmpty() || phoneNumber.isEmpty()) {
-            System.out.println("Ошибка! Имя и номер телефона не должны быть пустыми");
+        if (phoneNumber.isEmpty()) {
+            System.out.println("Ошибка! Номер телефона не должен быть пустыми");
             return contactCount;
         }
 
@@ -40,11 +39,51 @@ public class ContactManagementSystem {
         return ++contactCount;
     }
 
-    public static boolean removeContact(Scanner scanner, int contactCount) {
-        System.out.println("Введите имя для удаления контакта:");
-        String name = scanner.nextLine().trim();
-        int index = getIndexByName(name, contactCount);
+    public static void getAll(int contactCount) {
+        if (contactCount == 0) {
+            System.out.println("Список контактов пуст.");
+        } else {
+            for (int i = 0; i < contactCount; i++) {
+                System.out.printf("%d.%s - %s\n", i + 1, names[i], phoneNumbers[i]);
+            }
+        }
+    }
 
+    public static void findContactByName(Scanner scanner, int contactCount) {
+        System.out.println("Введите имя контакта для поиска:");
+        String name = scanner.nextLine().trim();
+
+        if (name.isEmpty()) {
+            System.out.println("Ошибка! Имя контакта не должно быть пустым.");
+            return;
+        }
+
+        int contactIndex = getIndexByName(name, contactCount);
+        if (contactIndex == -1) {
+            System.out.printf("Контакт с именем %s не найден.\n", name);
+        } else {
+            System.out.printf("Телефон %s: %s\n", names[contactIndex], phoneNumbers[contactIndex]);
+        }
+    }
+
+    public static int getIndexByName(String name, int contactCount) {
+        for (int i = 0; i < contactCount; i++) {
+            if (names[i].equalsIgnoreCase(name)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public static boolean removeContact(Scanner scanner, int contactCount) {
+        System.out.println("Имя для удаления:");
+        String name = scanner.nextLine().trim();
+        if (name.isEmpty()) {
+            System.out.println("Ошибка! Имя контакта не должно быть пустым.");
+            return false;
+        }
+
+        int index = getIndexByName(name, contactCount);
         if (index == -1) {
             System.out.println("Контакт с именем " + name + " не найден");
             return false;
@@ -59,32 +98,6 @@ public class ContactManagementSystem {
 
         System.out.printf("Контакт \"%s\" удален.\n", name);
         return true;
-    }
-
-    public static void findContactByName(Scanner scanner, int contactCount) {
-        System.out.println("Введите имя контакта для поиска:");
-        String name = scanner.nextLine().trim();
-
-        if (name.isEmpty()) {
-            System.out.println("Ошибка! Имя контакнта не должно быть пустым.");
-            return;
-        }
-
-        int contactIndex = getIndexByName(name, contactCount);
-        if (contactIndex == -1) {
-            System.out.println("Контакт не найден");
-        } else {
-            System.out.println(names[contactIndex] + " " + phoneNumbers[contactIndex]);
-        }
-    }
-
-    public static int getIndexByName(String name, int contactCount) {
-        for (int i = 0; i < contactCount; i++) {
-            if (names[i].equalsIgnoreCase(name)) {
-                return i;
-            }
-        }
-        return -1;
     }
 
     public static void getMenu() {
@@ -143,7 +156,6 @@ public class ContactManagementSystem {
                 case 5:
                     isRunning =  false;
                     break;
-                default:
             }
         }
     }
